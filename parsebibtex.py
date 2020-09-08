@@ -92,6 +92,53 @@ def parse_article(n, bib_item):
     subst = "'"
     ret_text = re.sub(regex, subst, test_str, 0, re.MULTILINE)
     journal_table[3]=ret_text
+    
+    #Rivista
+    ret_text=new_keys_journal[4]+bib_item['journal']
+    journal_table[4]=ret_text
+    
+    #ISSN
+    ret_text=new_keys_journal[5]+bib_item['issn']
+    journal_table[5]=ret_text
+    
+    #anno
+    ret_text=new_keys_journal[6]+bib_item['year']
+    journal_table[6]=ret_text
+    
+    #fields from 7 to 10
+    ret_text=new_keys_journal[7]
+    journal_table[7]=ret_text
+    
+    ret_text=new_keys_journal[8]
+    journal_table[8]=ret_text
+    
+    ret_text=new_keys_journal[9]
+    journal_table[9]=ret_text
+    
+    ret_text=new_keys_journal[10]
+    journal_table[10]=ret_text
+    
+    #managing altre informazioni
+    # I put url, doi, abstract
+    ret_text=new_keys_journal[11]+"\n"
+    doi=""
+    url=""
+    abs=""
+    try:
+        doi="doi: "+bib_item['doi']
+    except:
+        print("item, ",n, "no doi")
+
+    try:
+        url="url: "+bib_item['url']
+    except:
+            print("item, ", n, "no url")
+    try:
+        abs="abstract: "+bib_item['abstract']
+    except:
+        print("item, ",n, "no abstract")
+    ret_text=ret_text+' '.join([doi,url,abs])
+    journal_table[11]=ret_text
     return journal_table
 
 def parse_inproceedings(bib_item):
@@ -103,7 +150,7 @@ def parse_bibtext(bib_file):
     with open(bib_file) as bibtex_file:
         bib_database = bibtexparser.load(bibtex_file)
 
-    n = 0
+    n = 1
     for bib_item in bib_database.entries:
         print()
         if bib_item['ENTRYTYPE']=="inproceedings":
