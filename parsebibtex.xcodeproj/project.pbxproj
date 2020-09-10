@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		6A3046572507D96A002DE45F /* parsebibtex.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = parsebibtex.py; sourceTree = "<group>"; };
+		6AAB90F8250A18360034F318 /* parsebibods.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = parsebibods.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -15,6 +16,7 @@
 			isa = PBXGroup;
 			children = (
 				6A3046572507D96A002DE45F /* parsebibtex.py */,
+				6AAB90F8250A18360034F318 /* parsebibods.py */,
 			);
 			sourceTree = "<group>";
 		};

@@ -267,7 +267,7 @@ def parse_inproceedings(n, bib_item):
         url=""
         abs=""
         try:
-            booktitle="In "+bib_item['booktitle']
+            booktitle=bib_item['booktitle']
         except:
             print("item, ",n, "no booktitle")
 
