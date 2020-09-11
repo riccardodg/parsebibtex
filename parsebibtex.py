@@ -565,7 +565,7 @@ def main():
     print(bib_file, type)
     new_doc_name=new_doc_name+"_"+type+suffix
     tables_dict,y=parse_bibtext(bib_file, type)
-    print(y)
+    ##print(y)
     print_doc(new_document,new_doc_name,tables_dict)
 
 main()
