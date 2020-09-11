@@ -61,6 +61,18 @@ def argparser(routine):
         default="",
     )
 
+    parser.add_argument(
+        "name",
+        action="store",
+        # dest='plot_type',
+        help="Provide the name",
+        metavar="NAME",
+        type=str,
+        default="",
+    )
+
+    
+
     # optional
     parser.add_argument(
         "-v",
@@ -77,9 +89,10 @@ def argparser(routine):
 
     bib_file = args.bib_file
     type = args.type
+    name=args.name
     verbose = args.verbose
 
-    return bib_file, type, verbose
+    return bib_file, type, name, verbose
 
 
 """
@@ -183,6 +196,8 @@ def parse_article(df):
         #print(int(row['Anno di pubblicazione']))
         
         dict_key=int(row['Anno di pubblicazione'])
+        
+        #Tipologia prodotto
         ret_text=new_keys_journal[0]+row["Tipo"]
         journal_table[0]=ret_text
         
@@ -260,6 +275,90 @@ def parse_article(df):
 
     return journal_dict
 
+
+'''
+contribute w/o isbn
+'''
+def parse_contribute_no_isbn(df):
+    ret_text=""
+    wrong_item=None
+    #table structure
+    noisbn_dict={}
+
+    proceedings_tables={}
+    
+    new_keys_no_isbn=['Tipologia prodotto ','Titolo ','Descrizione ','Elenco autori ','Ruolo svolto ','anno pubblicazione ','Altre informazioni ']
+    
+    
+    #init dict
+    for index, row in df.iterrows():
+        #print(int(row['Anno di pubblicazione']))
+        dict_key=int(row['Anno di pubblicazione'])
+        noisbn_dict[dict_key]=[]
+    #fill the dict
+    for index, row in df.iterrows():
+        proceedings_tables={}
+        #print(int(row['Anno di pubblicazione']))
+        
+        dict_key=int(row['Anno di pubblicazione'])
+        
+        #Tipologia prodotto
+        ret_text=new_keys_no_isbn[0]+row["Tipo"]+ " (senza ISBN)"
+        proceedings_tables[0]=ret_text
+              
+        #Titolo
+        ret_text=new_keys_no_isbn[1]+row["Titolo"]
+        regex = r"\\'"
+        test_str = ret_text
+        subst = "'"
+        ret_text = re.sub(regex, subst, test_str, 0, re.MULTILINE)
+        proceedings_tables[1]=ret_text
+ 
+        #Descrizione
+        ret_text=new_keys_no_isbn[2]
+        proceedings_tables[2]=ret_text
+
+        #Elenco autori
+        ret_text=new_keys_no_isbn[3]+row["Autore/i"]
+        proceedings_tables[3]=ret_text
+        
+        #Ruolo svolto
+        ret_text=new_keys_no_isbn[4]
+        proceedings_tables[4]=ret_text
+        
+        #Anno
+        ret_text=new_keys_no_isbn[5]+str(int(row["Anno di pubblicazione"]))
+        proceedings_tables[5]=ret_text
+        
+        
+        
+        #Altre informazioni. DOI+abstract, URL
+        doi=""
+        url=""
+        abstract=""
+        ret_text=new_keys_no_isbn[6]
+        '''
+        if row['DOI'] is not None:
+            doi=row['DOI']
+        else:
+            doi=""
+        '''
+        if row['Abstract'] is not None:
+            abstract=row['Abstract']
+        else:
+            url=""
+        if row['URL'] is not None:
+            url=row['URL']
+        else:
+            url=""
+        ret_text=ret_text+' '.join([doi,url,abstract])
+        proceedings_tables[10]=ret_text
+        (noisbn_dict[dict_key]).append(proceedings_tables)
+        
+
+    return noisbn_dict
+
+
 """
 main
 """
@@ -268,14 +367,17 @@ def main():
     routine = sys.argv[0]
     sheets = []
     dfs_dict={}
-    dfs_dict_by_year={}
+    dfs_dict_by_year_journal={}
+    dfs_dict_by_year_noisbn={}
     df=None
     # output file
     new_doc_name = "./bib/bibfilefromods"
     suffix = ".docx"
 
-    (bib_file, type, verbose) = argparser(routine)
-    print(bib_file, type)
+    (bib_file, type, name, verbose) = argparser(routine)
+    new_doc_name=new_doc_name+"_"+type+"_"+name+suffix
+   
+    print(bib_file, type, name, verbose)
     sheets = parseods(bib_file, verbose)
     # new_doc_name=new_doc_name+"_"+type+suffix
     # tables_dict,y=parse_bibtext(bib_file, type)
@@ -289,8 +391,34 @@ def main():
             if verbose:
                 print("Calling parse_article with a df with {} rows".format(len(dfs_dict[sheet_name])))
             df=dfs_dict[sheet_name]
+            print(df['DOI'])
+            dfs_dict_by_year_journal=parse_article(df)
+        if sheet_name=='Abstract_in_atti_di_':
+            if verbose:
+                print("Calling parse_contribute_no_isbn with a df with {} rows".format(len(dfs_dict[sheet_name])))
+            df=dfs_dict[sheet_name]
             print(df)
-            dfs_dict_by_year=parse_article(df)
-    print("XXX ",dfs_dict_by_year[2019])
+            dfs_dict_by_year_noisbn=parse_contribute_no_isbn(df)
+        if sheet_name=='Contributo_in_atti_d':
+            if verbose:
+                print("Filtering data with ISBN from data with no ISBN from a df with {} rows".format(len(dfs_dict[sheet_name])))
+            
+            df=dfs_dict[sheet_name]
+            df_isbn=df.loc[df['ISBN'] != "\n"]
+            df_noisbn=df.loc[df['ISBN'] == "\n"]
+            if verbose:
+                print("Calling parse_contribute_no_isbn with a df with {} rows".format(len(df_noisbn)))
+        
+            print(df)
+            print(df_isbn)
+            print(df_noisbn)
+            #dfs_dict_by_year_noisbn=parse_contribute_no_isbn(df)
+    #print("XXX ",dfs_dict_by_year_noisbn, len(dfs_dict_by_year_noisbn[2017]))
+    
+    
+    #print("MOISBN=",dfs_dict_by_year_noisbn, "JOURNAL=",dfs_dict_by_year_journal)
+
+
+
 
 main()

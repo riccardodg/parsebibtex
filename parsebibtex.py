@@ -58,14 +58,25 @@ def argparser(routine):
         type=str,
         default="",
     )
+    
+    parser.add_argument(
+        "name",
+        action="store",
+        # dest='plot_type',
+        help="Provide the name",
+        metavar="NAME",
+        type=str,
+        default="",
+    )
 
     args = parser.parse_args()
     # get the values
 
     bib_file = args.bib_file
     type = args.type
+    name=args.name
 
-    return bib_file, type
+    return bib_file, type,name
 '''
 article in journal
 '''
@@ -198,7 +209,7 @@ def parse_inproceedings(n, bib_item):
         
         #Altre info
         # I put url, booktitle, abstract
-        ret_text=new_keys_isbn[6]+" "
+        
         booktitle=""
         url=""
         abs=""
@@ -224,6 +235,8 @@ def parse_inproceedings(n, bib_item):
             ret_text = re.sub(regex, subst, test_str, 0, re.MULTILINE)
         except:
             print("item, ",n, "no abstract")
+        
+        ret_text=new_keys_isbn[6]+" "
         ret_text=ret_text+' '.join([booktitle,url,abs])
         proceedings_tables[6]=ret_text
         
@@ -262,7 +275,6 @@ def parse_inproceedings(n, bib_item):
         proceedings_tables[6]=ret_text
         
         #Altre info
-        ret_text=new_keys_no_isbn[7]+" "
         booktitle=""
         url=""
         abs=""
@@ -288,7 +300,9 @@ def parse_inproceedings(n, bib_item):
             ret_text = re.sub(regex, subst, test_str, 0, re.MULTILINE)
         except:
             print("item, ",n, "no abstract")
+
         ret_text=ret_text+' '.join([booktitle,url,abs])
+        ret_text=new_keys_no_isbn[7]+" "+ret_text
         proceedings_tables[7]=ret_text
         
         
@@ -335,7 +349,7 @@ def parse_inbooks(n, bib_item):
     
     #Altre info
     # I put url, booktitle, abstract, doi issn, note
-    ret_text=new_keys_book[6]+" "
+    
     booktitle=""
     url=""
     abs=""
@@ -380,6 +394,8 @@ def parse_inbooks(n, bib_item):
         ret_text = re.sub(regex, subst, test_str, 0, re.MULTILINE)
     except:
         print("item, ",n, "no abstract")
+
+    ret_text=new_keys_book[6]+" "
     ret_text=ret_text+' '.join([booktitle,url,abs,doi,issn,note])
     books_tables[6]=ret_text
         
@@ -484,6 +500,14 @@ def parse_bibtext_R(bib_file):
             print("call inbook ",n)
             temp=parse_inbooks(n,bib_item)
             tables_dict[n]=temp
+        if bib_item['ENTRYTYPE']=="book":
+            print("call inbook (book) ",n)
+            temp=parse_inbooks(n,bib_item)
+            tables_dict[n]=temp
+        if bib_item['ENTRYTYPE']=="misc":
+            print("call inproceedings (misc) ",n)
+            temp=parse_inproceedings(n,bib_item)
+            tables_dict[n]=temp
             
         n = n + 1
     print("#items ",n, len(bib_database.entries))
@@ -561,11 +585,25 @@ def main():
     new_doc_name='./bib/bibfile'
     suffix='.docx'
     
-    (bib_file, type) = argparser(routine)
-    print(bib_file, type)
-    new_doc_name=new_doc_name+"_"+type+suffix
+    (bib_file, type,name) = argparser(routine)
+    print(bib_file, type,name)
+    new_doc_name=new_doc_name+"_"+type+"_"+name+suffix
     tables_dict,y=parse_bibtext(bib_file, type)
     ##print(y)
     print_doc(new_document,new_doc_name,tables_dict)
 
 main()
+'''
+ds = [NOISBN, JOURNAL]
+d = {}
+for k in NOISBN.keys():
+	try:	
+		d[k] = tuple(d[k] for d in ds)
+	except:
+		print("pass NOISBN ",k)	 
+for k in JOURNAL.keys():
+	try:	
+		d[k] = tuple(d[k] for d in ds)
+	except:
+		print("pass JOURNAL ",k)
+'''
